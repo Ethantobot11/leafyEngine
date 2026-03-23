@@ -32,10 +32,16 @@ jobs:
           haxelib git HxU_SDL2 https://github.com/Haxe-WiiU/HxU_SDL2
           # Add any other libraries Leafy Engine needs here
 
-      - name: Build with hxCompileU
+      - name: Download and Build with hxCompileU
         run: |
-          # Assuming hxCompileU is in your repo or you download it here
+          # 1. Download the latest hxCompileU (Linux version)
+          # Note: We are pulling from Ethantobot11's repo since that's the one you're using
+          curl -L -o hxCompileU https://github.com/Slushi-Github/hxCompileU/releases/download/1.5.5/Linux64_HxCompileU.zip 
+          
+          # 2. Make it executable
           chmod +x ./hxCompileU
+          
+          # 3. Run the build commands
           ./hxCompileU --prepare
           ./hxCompileU --compile
 
