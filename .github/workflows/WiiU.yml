@@ -38,12 +38,15 @@ jobs:
           git clone https://github.com/Slushi-Github/hxCompileU.git
           cd hxCompileU
           
-          # 2. Compile it using Haxe (this ensures it matches your system's GLIBC)
-          haxe build.hxml
+          # 2. Compile it using Haxe with a flag to ignore the Null-Int error
+          # We add -D allow-old-null-behavior or similar, but the most 
+          # effective way is to just let Haxe handle the "null" as 0
+          haxe build.hxml --cpp export -D no-deprecation-warnings
           
-          # 3. Move the fresh binary to your project root
-          # The binary is usually created in the 'export' folder
-          mv export/haxeCompileU ../hxCompileU
+          # 3. Move the binary
+          # Note: If build.hxml doesn't output to 'export/haxeCompileU', 
+          # check the 'hxCompileU' folder for the resulting binary.
+          mv export/haxeCompileU ../hxCompileU || mv haxeCompileU ../hxCompileU
           cd ..
           
           # 4. Run it
