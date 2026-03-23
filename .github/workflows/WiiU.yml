@@ -32,27 +32,27 @@ jobs:
           haxelib git HxU_SDL2 https://github.com/Haxe-WiiU/HxU_SDL2
           # Add any other libraries Leafy Engine needs here
 
-      - name: Build and Run hxCompileU from Source
+      - name: Build and Run hxCompileU (Manual Target)
         run: |
-          # 1. Clone the hxCompileU source code
-          git clone https://github.com/Slushi-Github/hxCompileU.git
+          # 1. Clone the tool
+          git clone --branch main https://github.com/Slushi-Github/hxCompileU.git
           cd hxCompileU
           
-          # 2. Compile it using Haxe with a flag to ignore the Null-Int error
-          # We add -D allow-old-null-behavior or similar, but the most 
-          # effective way is to just let Haxe handle the "null" as 0
-          haxe build.hxml --cpp export -D no-deprecation-warnings
+          # 2. Patch the Int null error
+          sed -i '126s/null/0/g' src/compilers/HaxeCompiler.hx
           
-          # 3. Move the binary
-          # Note: If build.hxml doesn't output to 'export/haxeCompileU', 
-          # check the 'hxCompileU' folder for the resulting binary.
-          mv export/haxeCompileU ../hxCompileU || mv haxeCompileU ../hxCompileU
+          # 3. Build specifically for the Neko VM (Very fast and stable for CLI tools)
+          # This avoids the "Multiple targets" error
+          haxe -cp src -main Main -neko hxCompileU.n
+          
+          # 4. Move it back to root
+          mv hxCompileU.n ../hxCompileU.n
           cd ..
           
-          # 4. Run it
-          chmod +x ./hxCompileU
-          ./hxCompileU --prepare
-          ./hxCompileU --compile
+          # 5. Run it using the 'neko' command (which is pre-installed with Haxe)
+          # We manually create the config if it doesn't exist to prevent crash
+          neko hxCompileU.n --prepare
+          neko hxCompileU.n --compile
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
