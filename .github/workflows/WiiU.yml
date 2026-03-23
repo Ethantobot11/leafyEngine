@@ -34,14 +34,17 @@ jobs:
 
       - name: Download and Build with hxCompileU
         run: |
-          # 1. Download the latest hxCompileU (Linux version)
-          # Note: We are pulling from Ethantobot11's repo since that's the one you're using
-          curl -L -o hxCompileU https://github.com/Slushi-Github/hxCompileU/releases/download/1.5.5/Linux64_HxCompileU.zip 
+          # 1. Download the zip from the Slushi-Github fork
+          curl -L -o hxCompileU.zip https://github.com/Slushi-Github/hxCompileU/releases/download/1.5.5/Linux64_HxCompileU.zip
           
-          # 2. Make it executable
+          # 2. Extract the binary from the zip
+          unzip hxCompileU.zip
+          
+          # 3. The extracted file is usually named 'hxCompileU', make it executable
+          # If the file inside the zip has a different name, use that name here
           chmod +x ./hxCompileU
           
-          # 3. Run the build commands
+          # 4. Run the build commands
           ./hxCompileU --prepare
           ./hxCompileU --compile
 
