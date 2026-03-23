@@ -1,0 +1,46 @@
+name: Build Leafy Engine (Wii U)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Allows you to run it manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitppc:latest # Use the official devkitPro image
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Haxe
+        run: |
+          apt-get update
+          apt-get install -y haxe
+          mkdir -p ~/haxelib
+          haxelib setup ~/haxelib
+
+      - name: Install Wii U Dependencies
+        run: |
+          # Install the specialized forks required for Leafy/Reflaxe
+          haxelib git reflaxe https://github.com/SomeRanDev/reflaxe
+          haxelib git reflaxe.CPP https://github.com/Slushi-Github/reflaxe.CPP
+          haxelib git HxU_WUT https://github.com/Haxe-WiiU/HxU_WUT
+          haxelib git HxU_SDL2 https://github.com/Haxe-WiiU/HxU_SDL2
+          # Add any other libraries Leafy Engine needs here
+
+      - name: Build with hxCompileU
+        run: |
+          # Assuming hxCompileU is in your repo or you download it here
+          chmod +x ./hxCompileU
+          ./hxCompileU --prepare
+          ./hxCompileU --compile
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiiU-Build
+          path: export/wiiuFiles/*.wuhb
