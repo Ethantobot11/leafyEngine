@@ -34,17 +34,19 @@ jobs:
 
       - name: Download and Build with hxCompileU
         run: |
-          # 1. Download the zip from the Slushi-Github fork
+          # 1. Download
           curl -L -o hxCompileU.zip https://github.com/Slushi-Github/hxCompileU/releases/download/1.5.5/Linux64_HxCompileU.zip
           
-          # 2. Extract the binary from the zip
+          # 2. Extract
           unzip hxCompileU.zip
           
-          # 3. The extracted file is usually named 'hxCompileU', make it executable
-          # If the file inside the zip has a different name, use that name here
+          # 3. Rename the inflated file to match your script
+          mv haxeCompileU hxCompileU
+          
+          # 4. Make it executable
           chmod +x ./hxCompileU
           
-          # 4. Run the build commands
+          # 5. Run the build commands
           ./hxCompileU --prepare
           ./hxCompileU --compile
 
