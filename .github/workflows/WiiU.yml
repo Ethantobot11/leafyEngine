@@ -32,7 +32,7 @@ jobs:
           haxelib git HxU_SDL2 https://github.com/Haxe-WiiU/HxU_SDL2
           # Add any other libraries Leafy Engine needs here
 
-      - name: Build and Run hxCompileU (Manual Target)
+      - name: Build and Run hxCompileU (Manual C++ Build)
         run: |
           # 1. Clone the tool
           git clone --branch main https://github.com/Slushi-Github/hxCompileU.git
@@ -41,18 +41,19 @@ jobs:
           # 2. Patch the Int null error
           sed -i '126s/null/0/g' src/compilers/HaxeCompiler.hx
           
-          # 3. Build specifically for the Neko VM (Very fast and stable for CLI tools)
-          # This avoids the "Multiple targets" error
-          haxe -cp src -main Main -neko hxCompileU.n
+          # 3. Build specifically for C++ (Linux)
+          # We point to the 'src' folder and tell it the Main class is in 'src'
+          haxe -cp src -main Main --cpp export -D no-deprecation-warnings
           
-          # 4. Move it back to root
-          mv hxCompileU.n ../hxCompileU.n
+          # 4. Move the resulting binary back to the project root
+          # Note: C++ builds usually create the binary inside the export folder
+          mv export/Main ../hxCompileU
           cd ..
           
-          # 5. Run it using the 'neko' command (which is pre-installed with Haxe)
-          # We manually create the config if it doesn't exist to prevent crash
-          neko hxCompileU.n --prepare
-          neko hxCompileU.n --compile
+          # 5. Run the tool
+          chmod +x ./hxCompileU
+          ./hxCompileU --prepare
+          ./hxCompileU --compile
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
