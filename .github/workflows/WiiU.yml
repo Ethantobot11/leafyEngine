@@ -75,7 +75,7 @@ jobs:
           
           # 1. Compile the tool into a HashLink or Interpretation-friendly format
           # We use the -main src.Main to fix the "Invalid commandline class" error
-          haxe -cp src -main src.Main --interp --macro "allowPackage('cpp')" --compile
+          haxe -cp src -main src.Main --interp --macro "allowPackage('cpp')" compile
           
           # 2. If the above still complains about 'cpp', we use the binary we built 
           # in the previous step ('Build hxCompileU Tool') instead:
@@ -84,7 +84,7 @@ jobs:
                -main src.Main \
                --cpp hxToolTemp
           
-          ./hxToolTemp/Main --compile
+          ./hxToolTemp/Main compile
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
