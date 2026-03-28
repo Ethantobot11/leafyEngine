@@ -64,21 +64,20 @@ jobs:
       - name: Build hxCompileU Tool
         run: |
           cd /github/home/haxelib/hxCompileU/git
-          haxe build.hxml -D haxe4
-          chmod +x export/hxCompileU || chmod +x hxCompileU || true
-          echo "$(pwd)/export" >> $GITHUB_PATH
-          echo "$(pwd)" >> $GITHUB_PATH
+          
+          # 1. Compile the tool to a real C++ binary for the Ubuntu Runner
+          # This avoids the 'eval' interpreter entirely.
+          haxe -cp src -main src.Main -cpp out_linux -D HXCPP_M64
+          
+          # 2. Move the finished binary to your project root
+          cp out_linux/Main $GITHUB_WORKSPACE/hxcompileu_bin
+          chmod +x $GITHUB_WORKSPACE/hxcompileu_bin
 
       - name: Build Leafy Engine Project
         run: |
-          cd /github/home/haxelib/hxCompileU/git
-          
-          # 1. Patch Main.hx so 'args' always starts with '--compile'
-          # This forces the switch(args[0]) to hit the compile case automatically.
-          sed -i 's/static var args = Sys.args();/static var args = ["--compile"];/g' src/Main.hx
-          
-          # 2. Run it. Now it doesn't matter what arguments we pass.
-          haxe -cp src --run src.Main
+          # Now we run the compiled binary directly. 
+          # No 'haxe --run', no 'eval' errors.
+          ./hxcompileu_bin --compile
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
