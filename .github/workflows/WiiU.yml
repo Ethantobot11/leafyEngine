@@ -25,22 +25,22 @@ jobs:
 
       - name: Install Wii U System Dependencies
         run: |
-          # 1. Add the Wii U repository to pacman if it's missing
-          # The devkitPro image usually has dkp-pacman preconfigured, 
-          # but we need to ensure the wiiu group is accessible.
-          
-          # 2. Update and install the specific Wii U portlibs
-          # Note: 'wut' is often part of the 'wiiu-dev' group
+          # 1. Update the database
           dkp-pacman -Syu --noconfirm
+          
+          # 2. Install the core Wii U toolchain
+          dkp-pacman -S --noconfirm wiiu-dev
+          
+          # 3. Install specific Portlibs with corrected names
+          # Note: devkitPro uses underscores for some Wii U SDL2 sub-packages
           dkp-pacman -S --noconfirm \
-            wiiu-dev \
             wiiu-sdl2 \
-            wiiu-sdl2-image \
-            wiiu-sdl2-mixer \
-            wiiu-sdl2-ttf \
+            wiiu-sdl2_image \
+            wiiu-sdl2_mixer \
+            wiiu-sdl2_ttf \
             wiiu-curl \
-            wiiu-libvorbisidec \
-            ppc-jansson
+            ppc-jansson \
+            ppc-libvorbisidec
 
       - name: Install Haxe Wii U Libraries
         run: |
