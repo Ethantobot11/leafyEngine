@@ -73,18 +73,12 @@ jobs:
         run: |
           cd /github/home/haxelib/hxCompileU/git
           
-          # 1. Compile the tool into a HashLink or Interpretation-friendly format
-          # We use the -main src.Main to fix the "Invalid commandline class" error
-          haxe -cp src -main src.Main --interp --macro "allowPackage('cpp')" -- --compile
+          # 1. Patch Main.hx so 'args' always starts with '--compile'
+          # This forces the switch(args[0]) to hit the compile case automatically.
+          sed -i 's/static var args = Sys.args();/static var args = ["--compile"];/g' src/Main.hx
           
-          # 2. If the above still complains about 'cpp', we use the binary we built 
-          # in the previous step ('Build hxCompileU Tool') instead:
-          cd $GITHUB_WORKSPACE
-          haxe -cp /github/home/haxelib/hxCompileU/git/src \
-               -main src.Main \
-               --cpp hxToolTemp
-          
-          ./hxToolTemp/Main -- --compile
+          # 2. Run it. Now it doesn't matter what arguments we pass.
+          haxe -cp src --run src.Main
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
