@@ -75,6 +75,13 @@ jobs:
 
       - name: Build Leafy Engine Project
         run: |
+          # 1. Ensure Haxelib is initialized for this shell
+          haxelib setup ~/haxelib
+          
+          # 2. Add the -lib flags specifically if the HXML fails to find them,
+          # but first, let's make sure the tool uses the right haxelib repo.
+          # We'll run the binary, but we tell Haxe where the libs are via an Env Var.
+          export HAXELIB_PATH=~/haxelib
           # Now we run the compiled binary directly. 
           # No 'haxe --run', no 'eval' errors.
           ./hxcompileu_bin --compile
