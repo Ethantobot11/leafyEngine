@@ -45,6 +45,7 @@ jobs:
       - name: Install Haxe Wii U Libraries
         run: |
           # Core Tools
+          haxelib install hxcpp
           haxelib git hxCompileU https://github.com/Ethantobot11/hxCompileU --quiet
           haxelib git reflaxe.CPP https://github.com/SomeRanDev/reflaxe.CPP --quiet
           
