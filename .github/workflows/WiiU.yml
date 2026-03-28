@@ -32,6 +32,12 @@ jobs:
           # Clean any partial/corrupt sync files from previous failed attempts
           rm -rf /var/lib/pacman/sync/*
 
+      - name: Cache devkitPro
+        uses: actions/cache@v4
+        with:
+          path: /opt/devkitpro
+          key: ${{ runner.os }}-devkitpro-wiiu-v1
+
       - name: Install Wii U System Dependencies
         run: |
           # 1. Update the database
@@ -50,6 +56,12 @@ jobs:
             wiiu-curl \
             ppc-jansson \
             ppc-libvorbisidec
+
+      - name: Cache devkitPro
+        uses: actions/cache@v4
+        with:
+          path: /opt/devkitpro
+          key: ${{ runner.os }}-devkitpro-wiiu-v1
 
       - name: Install Haxe Wii U Libraries
         run: |
@@ -74,14 +86,22 @@ jobs:
       - name: Build hxCompileU Tool
         run: |
           cd /github/home/haxelib/hxCompileU/git
-          haxe build.hxml --macro "allowPackage('flash')" -D no-null-safety
-          echo "/github/home/haxelib/hxCompileU/git/export" >> $GITHUB_PATH
+          # Build it
+          haxe build.hxml -D haxe4
+          
+          # 1. FIND where the binary actually is and make it executable
+          # Usually it's in the 'export' folder or the root
+          chmod +x export/hxCompileU || chmod +x hxCompileU || true
+          
+          # 2. Add to PATH correctly for the NEXT step
+          echo "$(pwd)/export" >> $GITHUB_PATH
+          echo "$(pwd)" >> $GITHUB_PATH
 
       - name: Build Leafy Engine Project
         run: |
-          # Now that hxCompileU is built and in our PATH, we can run it.
-          # We use --compile to trigger the Makefile generation and GCC compilation.
-          hxCompileU --compile
+          # Use the direct path if the global command fails
+          # This assumes your project.xml or hxCompileUConfig.json is in the root
+          /github/home/haxelib/hxCompileU/git/export/hxCompileU --compile || /github/home/haxelib/hxCompileU/git/hxCompileU --compile
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
