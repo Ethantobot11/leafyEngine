@@ -101,15 +101,23 @@ jobs:
       - name: Build Leafy Engine Project
         run: |
           # 1. Ensure Haxelib is initialized for this shell
-          haxelib setup ~/haxelib
-          
-          # 2. Add the -lib flags specifically if the HXML fails to find them,
-          # but first, let's make sure the tool uses the right haxelib repo.
-          # We'll run the binary, but we tell Haxe where the libs are via an Env Var.
-          export HAXELIB_PATH=~/haxelib
-          # Now we run the compiled binary directly. 
-          # No 'haxe --run', no 'eval' errors.
-          ./hxcompileu_bin --compile --haxeflag="-lib reflaxe"
+          # 1. Ensure we are using the correct library path
+          export HAXELIB_PATH=/github/home/haxelib
+          haxelib setup $HAXELIB_PATH
+
+          # 2. Run the tool once just to generate the 'temphxml.hxml'
+          # We expect this to fail, so we use '|| true'
+          ./hxcompileu_bin --compile || true
+
+          # 3. Manually inject the required libraries into the generated HXML
+          # This ensures the compiler definitely sees the 'cxx' package
+          echo "-lib reflaxe" >> temphxml.hxml
+          echo "-lib reflaxe.cpp" >> temphxml.hxml
+          echo "-lib leafyengine" >> temphxml.hxml
+
+          # 4. Now run the Haxe compiler directly using that fixed HXML
+          # This bypasses the tool's internal call and uses our fixed version
+          haxe temphxml.hxml
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
