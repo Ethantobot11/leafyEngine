@@ -71,8 +71,12 @@ jobs:
         run: |
           haxelib install hxcpp --quiet
           haxelib git hxCompileU https://github.com/Ethantobot11/hxCompileU --quiet
+          # 1. Base Reflaxe (Mandatory for 'cxx' package)
           haxelib git reflaxe https://github.com/SomeRanDev/reflaxe --quiet
-          haxelib git reflaxe.cpp https://github.com/SomeRanDev/reflaxe.cpp --quiet
+          # 2. Reflaxe C++ Output
+          haxelib git reflaxe.cpp https://github.com/SomeRanDev/reflaxe.CPP --quiet
+          # 3. Leafy Engine (Lowercase to fix the [WARNING])
+          haxelib git leafyengine https://github.com/Slushi-Github/leafyEngine --quiet
           haxelib git hxu_wut https://github.com/Slushi-Github/hxWUT --quiet
           haxelib git hxu_libnotifications https://github.com/Slushi-Github/hxLibNotifications --quiet
           haxelib git hxu_libmappedMemory https://github.com/Slushi-Github/hxLibMappedMemory --quiet
@@ -81,7 +85,6 @@ jobs:
           haxelib git hxu_sdl_fontcache https://github.com/Slushi-Github/hxSDL_FontCache --quiet
           haxelib git hxu_jansson https://github.com/Slushi-Github/hxJansson --quiet
           haxelib git hxu_vorbis https://github.com/Slushi-Github/hxVorbis --quiet
-          haxelib git leafyEngine https://github.com/Slushi-Github/leafyEngine --quiet
 
       - name: Build hxCompileU Tool
         run: |
@@ -106,7 +109,7 @@ jobs:
           export HAXELIB_PATH=~/haxelib
           # Now we run the compiled binary directly. 
           # No 'haxe --run', no 'eval' errors.
-          ./hxcompileu_bin --compile
+          ./hxcompileu_bin --compile --haxeflag="-lib reflaxe
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
