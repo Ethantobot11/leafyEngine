@@ -28,11 +28,19 @@ jobs:
       #     restore-keys: |
      #       ${{ runner.os }}-devkitpro-wiiu                          
 
-      - name: Install Haxe
+      - name: Install Haxe 4.3.6
         run: |
           apt-get update
-          apt-get install -y haxe
-          haxelib setup ~/haxelib
+          apt-get install -y wget
+          # Download the official 4.3.6 Linux binary
+          wget https://github.com/HaxeFoundation/haxe/releases/download/4.3.6/haxe-4.3.6-linux64.tar.gz
+          tar -xvf haxe-4.3.6-linux64.tar.gz
+          # Move binaries to a place in the PATH
+          cp haxe-4.3.6/haxe /usr/local/bin/
+          cp haxe-4.3.6/haxelib /usr/local/bin/
+          # Setup the library path
+          mkdir -p /github/home/haxelib
+          haxelib setup /github/home/haxelib
 
       - name: Fix 403 Forbidden (Pacman User-Agent)
         run: |
@@ -59,7 +67,7 @@ jobs:
           haxelib git hxu_sdl_fontcache https://github.com/Slushi-Github/hxSDL_FontCache --quiet
           haxelib git hxu_jansson https://github.com/Slushi-Github/hxJansson --quiet
           haxelib git hxu_vorbis https://github.com/Slushi-Github/hxVorbis --quiet
-          haxelib git leafyengine https://github.com/Slushi-Github/leafyEngine --quiet
+          haxelib git leafyEngine https://github.com/Slushi-Github/leafyEngine --quiet
 
       - name: Build hxCompileU Tool
         run: |
