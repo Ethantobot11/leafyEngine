@@ -71,6 +71,7 @@ jobs:
         run: |
           haxelib install hxcpp --quiet
           haxelib git hxCompileU https://github.com/Ethantobot11/hxCompileU --quiet
+          haxelib git reflaxe https://github.com/SomeRanDev/reflaxe --quiet
           haxelib git reflaxe.cpp https://github.com/SomeRanDev/reflaxe.cpp --quiet
           haxelib git hxu_wut https://github.com/Slushi-Github/hxWUT --quiet
           haxelib git hxu_libnotifications https://github.com/Slushi-Github/hxLibNotifications --quiet
