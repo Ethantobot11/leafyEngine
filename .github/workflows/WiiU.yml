@@ -71,10 +71,20 @@ jobs:
 
       - name: Build Leafy Engine Project
         run: |
-          # Use the absolute path to your fork's source to be safe
-          haxe --cwd /github/home/haxelib/hxCompileU/git \
-               -cp src \
-               --run Main --compile
+          cd /github/home/haxelib/hxCompileU/git
+          
+          # 1. Compile the tool into a HashLink or Interpretation-friendly format
+          # We use the -main src.Main to fix the "Invalid commandline class" error
+          haxe -cp src -main src.Main --interp --macro "allowPackage('cpp')" --compile
+          
+          # 2. If the above still complains about 'cpp', we use the binary we built 
+          # in the previous step ('Build hxCompileU Tool') instead:
+          cd $GITHUB_WORKSPACE
+          haxe -cp /github/home/haxelib/hxCompileU/git/src \
+               -main src.Main \
+               --cpp hxToolTemp
+          
+          ./hxToolTemp/Main --compile
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
