@@ -18,15 +18,15 @@ jobs:
         uses: actions/checkout@v4
 
       # 1. SETUP CACHE FIRST
-      - name: Cache devkitPro
-        id: cache-dkp
-        uses: actions/cache@v4
-        with:
-          path: /opt/devkitpro
+   #    - name: Cache devkitPro
+    #     id: cache-dkp
+     #    uses: actions/cache@v4
+      #   with:
+      #     path: /opt/devkitpro
           # The key includes a hash of the workflow so if you change packages, it invalidates
-          key: ${{ runner.os }}-devkitpro-wiiu-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-devkitpro-wiiu-
+       #    key: ${{ runner.os }}-devkitpro-wiiu-${{ github.run_id }}
+      #     restore-keys: |
+     #       ${{ runner.os }}-devkitpro-wiiu                          
 
       - name: Install Haxe
         run: |
@@ -41,7 +41,7 @@ jobs:
 
       # 2. ONLY INSTALL IF CACHE MISS
       - name: Install Wii U System Dependencies
-        if: steps.cache-dkp.outputs.cache-hit != 'true'
+       #  if: steps.cache-dkp.outputs.cache-hit != 'true'
         run: |
           dkp-pacman -Syu --noconfirm
           dkp-pacman -S --noconfirm wiiu-dev wiiu-sdl2 wiiu-sdl2_image wiiu-sdl2_mixer wiiu-sdl2_ttf wiiu-curl ppc-jansson ppc-libvorbisidec
