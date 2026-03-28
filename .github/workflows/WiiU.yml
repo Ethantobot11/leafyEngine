@@ -35,10 +35,15 @@ jobs:
           # Download the official 4.3.6 Linux binary
           wget https://github.com/HaxeFoundation/haxe/releases/download/4.3.6/haxe-4.3.6-linux64.tar.gz
           tar -xvf haxe-4.3.6-linux64.tar.gz
-          # Move binaries to a place in the PATH
-          cp haxe-4.3.6/haxe /usr/local/bin/
-          cp haxe-4.3.6/haxelib /usr/local/bin/
-          # Setup the library path
+          
+          # The folder is named haxe-4.3.6-linux64
+          cd haxe-4.3.6-linux64
+          cp haxe /usr/local/bin/
+          cp haxelib /usr/local/bin/
+          mkdir -p /usr/local/lib/haxe
+          cp -r std /usr/local/lib/haxe/
+          
+          # Setup haxelib in the shared github home
           mkdir -p /github/home/haxelib
           haxelib setup /github/home/haxelib
 
