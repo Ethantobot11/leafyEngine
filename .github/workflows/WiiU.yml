@@ -23,6 +23,15 @@ jobs:
           apt-get install -y haxe
           haxelib setup ~/haxelib
 
+      - name: Fix 403 Forbidden (Pacman User-Agent)
+        run: |
+          # Force pacman to use wget with a custom User-Agent to bypass Cloudflare blocks
+          # This tells the devkitPro server we are 'dkp-pacman' (their preferred ID)
+          echo 'XferCommand = /usr/bin/wget -U "dkp-pacman" --passive-ftp -c -O %o %u' | tee -a /opt/devkitpro/pacman/etc/pacman.conf
+          
+          # Clean any partial/corrupt sync files from previous failed attempts
+          rm -rf /var/lib/pacman/sync/*
+
       - name: Install Wii U System Dependencies
         run: |
           # 1. Update the database
