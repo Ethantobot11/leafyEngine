@@ -32,28 +32,21 @@ jobs:
           haxelib git HxU_SDL2 https://github.com/Haxe-WiiU/HxU_SDL2
           # Add any other libraries Leafy Engine needs here
 
-      - name: Build and Run hxCompileU (Fixed Package Path)
+      - name: Download and Build with hxCompileU
         run: |
-          # 1. Clone the tool
-          git clone --branch main https://github.com/Slushi-Github/hxCompileU.git
-          cd hxCompileU
+          # 1. Download
+          curl -L -o hxCompileU.zip https://github.com/Slushi-Github/hxCompileU/releases/download/1.5.5/Linux64_HxCompileU.zip
           
-          # 2. PATCHES:
-          # Fix the Int null error
-          sed -i '126s/null/0/g' src/compilers/HaxeCompiler.hx
-          # Fix the package declaration error (removes "package src;" and makes it just "package;")
-          find src -name "*.hx" -exec sed -i 's/package src;/package;/g' {} +
+          # 2. Extract
+          unzip hxCompileU.zip
           
-          # 3. Build for C++
-          # We tell Haxe the source is IN 'src', so the classes don't need 'src.' prefix
-          haxe -cp src -main Main --cpp export -D no-deprecation-warnings
+          # 3. Rename the inflated file to match your script
+          mv haxeCompileU hxCompileU
           
-          # 4. Move and Rename
-          mv export/Main ../hxCompileU
-          cd ..
-          
-          # 5. Run the tool
+          # 4. Make it executable
           chmod +x ./hxCompileU
+          
+          # 5. Run the build commands
           ./hxCompileU --prepare
           ./hxCompileU --compile
 
