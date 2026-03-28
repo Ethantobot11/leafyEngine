@@ -61,6 +61,12 @@ jobs:
           # The Engine Itself
           haxelib git leafyEngine https://github.com/Slushi-Github/leafyEngine --quiet
 
+      - name: Patch HaxeCompiler.hx
+        run: |
+          # This replaces the null assignment with 0 to satisfy the static platform check
+          # or changes the type to Null<Int>
+          sed -i 's/:Int = null/:Null<Int> = null/g' /github/home/haxelib/hxCompileU/git/src/compilers/HaxeCompiler.hx
+
       - name: Build hxCompileU Tool
         run: |
           cd /github/home/haxelib/hxCompileU/git
