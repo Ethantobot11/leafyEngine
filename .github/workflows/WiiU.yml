@@ -17,6 +17,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 1. SETUP CACHE FIRST
+      - name: Cache devkitPro
+        id: cache-dkp
+        uses: actions/cache@v4
+        with:
+          path: /opt/devkitpro
+          # The key includes a hash of the workflow so if you change packages, it invalidates
+          key: ${{ runner.os }}-devkitpro-wiiu-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-devkitpro-wiiu-
+
       - name: Install Haxe
         run: |
           apt-get update
@@ -25,52 +36,21 @@ jobs:
 
       - name: Fix 403 Forbidden (Pacman User-Agent)
         run: |
-          # Force pacman to use wget with a custom User-Agent to bypass Cloudflare blocks
-          # This tells the devkitPro server we are 'dkp-pacman' (their preferred ID)
           echo 'XferCommand = /usr/bin/wget -U "dkp-pacman" --passive-ftp -c -O %o %u' | tee -a /opt/devkitpro/pacman/etc/pacman.conf
-          
-          # Clean any partial/corrupt sync files from previous failed attempts
           rm -rf /var/lib/pacman/sync/*
 
-      - name: Cache devkitPro
-        uses: actions/cache@v4
-        with:
-          path: /opt/devkitpro
-          key: ${{ runner.os }}-devkitpro-wiiu-v1
-
+      # 2. ONLY INSTALL IF CACHE MISS
       - name: Install Wii U System Dependencies
+        if: steps.cache-dkp.outputs.cache-hit != 'true'
         run: |
-          # 1. Update the database
           dkp-pacman -Syu --noconfirm
-          
-          # 2. Install the core Wii U toolchain
-          dkp-pacman -S --noconfirm wiiu-dev
-          
-          # 3. Install specific Portlibs with corrected names
-          # Note: devkitPro uses underscores for some Wii U SDL2 sub-packages
-          dkp-pacman -S --noconfirm \
-            wiiu-sdl2 \
-            wiiu-sdl2_image \
-            wiiu-sdl2_mixer \
-            wiiu-sdl2_ttf \
-            wiiu-curl \
-            ppc-jansson \
-            ppc-libvorbisidec
-
-      - name: Cache devkitPro
-        uses: actions/cache@v4
-        with:
-          path: /opt/devkitpro
-          key: ${{ runner.os }}-devkitpro-wiiu-v1
+          dkp-pacman -S --noconfirm wiiu-dev wiiu-sdl2 wiiu-sdl2_image wiiu-sdl2_mixer wiiu-sdl2_ttf wiiu-curl ppc-jansson ppc-libvorbisidec
 
       - name: Install Haxe Wii U Libraries
         run: |
-          # Core Tools
-          haxelib install hxcpp
+          haxelib install hxcpp --quiet
           haxelib git hxCompileU https://github.com/Ethantobot11/hxCompileU --quiet
           haxelib git reflaxe.CPP https://github.com/SomeRanDev/reflaxe.CPP --quiet
-          
-          # The Specific Libraries You Listed
           haxelib git HxU_WUT https://github.com/Slushi-Github/hxWUT --quiet
           haxelib git HxU_LibNotifications https://github.com/Slushi-Github/hxLibNotifications --quiet
           haxelib git HxU_LibMappedMemory https://github.com/Slushi-Github/hxLibMappedMemory --quiet
@@ -79,29 +59,22 @@ jobs:
           haxelib git HxU_SDL_FontCache https://github.com/Slushi-Github/hxSDL_FontCache --quiet
           haxelib git HxU_Jansson https://github.com/Slushi-Github/hxJansson --quiet
           haxelib git HxU_Vorbis https://github.com/Slushi-Github/hxVorbis --quiet
-          
-          # The Engine Itself
           haxelib git leafyEngine https://github.com/Slushi-Github/leafyEngine --quiet
 
       - name: Build hxCompileU Tool
         run: |
           cd /github/home/haxelib/hxCompileU/git
-          # Build it
           haxe build.hxml -D haxe4
-          
-          # 1. FIND where the binary actually is and make it executable
-          # Usually it's in the 'export' folder or the root
           chmod +x export/hxCompileU || chmod +x hxCompileU || true
-          
-          # 2. Add to PATH correctly for the NEXT step
           echo "$(pwd)/export" >> $GITHUB_PATH
           echo "$(pwd)" >> $GITHUB_PATH
 
       - name: Build Leafy Engine Project
         run: |
-          # Use the direct path if the global command fails
-          # This assumes your project.xml or hxCompileUConfig.json is in the root
-          /github/home/haxelib/hxCompileU/git/export/hxCompileU --compile || /github/home/haxelib/hxCompileU/git/hxCompileU --compile
+          # Use the absolute path to your fork's source to be safe
+          haxe --cwd /github/home/haxelib/hxCompileU/git \
+               -cp src \
+               --run Main --compile
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
