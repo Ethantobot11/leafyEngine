@@ -63,13 +63,8 @@ jobs:
 
       - name: Build hxCompileU Tool
         run: |
-          # 1. Enter the hxCompileU directory (where it was cloned by haxelib git)
           cd /github/home/haxelib/hxCompileU/git
-          
-          # 2. Build the tool itself using its own build file
-          haxe build.hxml
-          
-          # 3. Add the export folder to PATH so we can call the tool globally
+          haxe build.hxml --macro "allowPackage('flash')" -D no-null-safety
           echo "/github/home/haxelib/hxCompileU/git/export" >> $GITHUB_PATH
 
       - name: Build Leafy Engine Project
