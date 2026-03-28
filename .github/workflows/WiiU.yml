@@ -61,11 +61,22 @@ jobs:
           # The Engine Itself
           haxelib git leafyEngine https://github.com/Slushi-Github/leafyEngine --quiet
 
-      - name: Build Project
+      - name: Build hxCompileU Tool
         run: |
-          # This runs the hxCompileU tool to generate the Makefile and compile
-          # Ensure your hxCompileUConfig.json is in the root of your repo
-          haxelib run hxCompileU --compile
+          # 1. Enter the hxCompileU directory (where it was cloned by haxelib git)
+          cd /github/home/haxelib/hxCompileU/git
+          
+          # 2. Build the tool itself using its own build file
+          haxe build.hxml
+          
+          # 3. Add the export folder to PATH so we can call the tool globally
+          echo "/github/home/haxelib/hxCompileU/git/export" >> $GITHUB_PATH
+
+      - name: Build Leafy Engine Project
+        run: |
+          # Now that hxCompileU is built and in our PATH, we can run it.
+          # We use --compile to trigger the Makefile generation and GCC compilation.
+          hxCompileU --compile
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
