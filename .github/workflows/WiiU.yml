@@ -106,65 +106,39 @@ jobs:
           # 1. Generate the base HXML
           ./hxcompileu_bin --compile || true
 
-          haxelib install hxcpp --quiet
-          haxelib git hxCompileU https://github.com/Ethantobot11/hxCompileU --quiet
-          # 1. Base Reflaxe (Mandatory for 'cxx' package)
-          haxelib git reflaxe https://github.com/SomeRanDev/reflaxe --quiet
-          # 2. Reflaxe C++ Output
-          haxelib git reflaxe.cpp https://github.com/SomeRanDev/reflaxe.cpp --quiet
-          # 3. Leafy Engine (Lowercase to fix the [WARNING])
-          haxelib git leafyengine https://github.com/Slushi-Github/leafyEngine --quiet
-          haxelib git hxu_wut https://github.com/Slushi-Github/hxWUT --quiet
-          haxelib git hxu_libnotifications https://github.com/Slushi-Github/hxLibNotifications --quiet
-          haxelib git hxu_libmappedMemory https://github.com/Slushi-Github/hxLibMappedMemory --quiet
-          haxelib git slushiutilsu https://github.com/Slushi-Github/slushiUtilsU --quiet
-          haxelib git hxu_sdl2 https://github.com/Slushi-Github/hxSDL2 --quiet
-          haxelib git hxu_sdl_fontcache https://github.com/Slushi-Github/hxSDL_FontCache --quiet
-          haxelib git hxu_jansson https://github.com/Slushi-Github/hxJansson --quiet
-          haxelib git hxu_vorbis https://github.com/Slushi-Github/hxVorbis --quiet
-
-          # 2. Create the Fixed HXML with corrected Class Paths
-          # Reflaxe.cpp
+          # 2. Create the Fixed HXML with corrected "Parent" paths
+          # We point to the 'git' folder so Haxe can see the packages inside them
           echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" > fixed.hxml
           echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> fixed.hxml
           echo "-cp /github/home/haxelib/reflaxe/git/src" >> fixed.hxml
           
-          # Libraries where the package is NOT in the root (but in a subfolder)
-          # We point to the folder that CONTAINS the package folder
-          echo "-cp /github/home/haxelib/hxu_jansson/git/jansson" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_libmappedmemory/git/memory" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_wut/git/wut" >> fixed.hxml
-          
-          # Libraries where the package IS in the root
-          echo "-cp /github/home/haxelib/hxsdl2/git/sdl2" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxvorbis/git/vorbis" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_sdl_fontcache/git/sdl_fontcache" >> fixed.hxml
-          echo "-cp /github/home/haxelib/slushiutilsu/git/wiiu" >> fixed.hxml
+          # For these, we remove the /sdl2, /vorbis, etc. from the end
+          echo "-cp /github/home/haxelib/hxsdl2/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/hxvorbis/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/hxu_jansson/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/hxu_libmappedmemory/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/hxu_wut/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/hxu_sdl_fontcache/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/slushiutilsu/git" >> fixed.hxml
           
           # Leafy Engine
           echo "-cp /github/home/haxelib/leafyengine/git" >> fixed.hxml
           
-          # 3. Append generated flags from the tool
-          cat temphxml.hxml >> fixed.hxml
+          # 3. Append generated flags, stripping out -lib to avoid confusion
+          grep -v "^-lib" temphxml.hxml >> fixed.hxml
 
-          # 4. Final adjustments for packages and main class
-          # We force 'leafy.Leafy' because Leafy.hx is inside the leafy/ folder
+          # 4. Final adjustments
           sed -i "s/-main leafy.Leafy/-main leafy.Leafy/g" fixed.hxml
           sed -i "s/-main Leafy/-main leafy.Leafy/g" fixed.hxml
           sed -i "s/-main src.Main/-main leafy.Leafy/g" fixed.hxml
-          
-          # Fix the Reflaxe define to match the main class
           sed -i "s/-D mainClass=src.Main/-D mainClass=leafy.Leafy/g" fixed.hxml
-          sed -i "s/-D mainClass=Leafy/-D mainClass=leafy.Leafy/g" fixed.hxml
-          
-          # Ensure current directory is checked for the local 'leafy' folder
           sed -i "s/-cp src/-cp ./g" fixed.hxml
 
           echo "--- FINAL HXML CONFIGURATION ---"
           cat fixed.hxml
           echo "--------------------------------"
 
-          # 5. Run the Haxe Compiler
+          # 5. Run Haxe
           haxe fixed.hxml
 
       - name: Upload Build
