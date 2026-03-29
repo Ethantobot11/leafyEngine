@@ -106,25 +106,43 @@ jobs:
           # 1. Generate the base HXML
           ./hxcompileu_bin --compile || true
 
-          # 2. Refine the HXML
-          # We remove the '-main src.Main' if it's causing issues and replace it
-          # We also ensure the Reflaxe std path is at the VERY TOP
-          echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" > temp_fixed.hxml
-          cat temphxml.hxml >> temp_fixed.hxml
+          # 2. Create the Fixed HXML
+          # IMPORTANT: We put Reflaxe std at the VERY TOP
+          echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" > fixed.hxml
+          echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> fixed.hxml
+          echo "-cp /github/home/haxelib/reflaxe/git" >> fixed.hxml
+          echo "-cp /github/home/haxelib/leafyengine/git" >> fixed.hxml
           
-          # Inject the other paths
-          echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> temp_fixed.hxml
-          echo "-cp /github/home/haxelib/reflaxe/git" >> temp_fixed.hxml
-          echo "-cp /github/home/haxelib/leafyengine/git" >> temp_fixed.hxml
+          # 3. Add the tool's generated flags
+          cat temphxml.hxml >> fixed.hxml
 
-          # 3. Final verification: Check if Main.hx is in a package
-          # This command checks if 'package src;' exists. If not, it fixes the main call.
-          if ! grep -q "package src;" src/Main.hx; then
-            sed -i 's/-main src.Main/-main Main/g' temp_fixed.hxml
+          # 4. Point Haxe to your 'leafy' folder
+          echo "-cp leafy" >> fixed.hxml
+
+          # 5. FIND THE REAL ENTRY POINT
+          # We check the 'leafy' folder for the main class
+          REAL_MAIN=""
+          if [ -f "leafy/Leafy.hx" ]; then REAL_MAIN="Leafy";
+          elif [ -f "leafy/lfEngine.hx" ]; then REAL_MAIN="lfEngine";
+          elif [ -f "leafy/lfBase.hx" ]; then REAL_MAIN="lfBase";
           fi
 
-          # 4. Run the compiler
-          haxe temp_fixed.hxml
+          if [ ! -z "$REAL_MAIN" ]; then
+            echo "Found Entry Point: $REAL_MAIN"
+            # Replace the fake 'src.Main' with the real one
+            sed -i "s/-main src.Main/-main $REAL_MAIN/g" fixed.hxml
+            sed -i "s/-D mainClass=src.Main/-D mainClass=$REAL_MAIN/g" fixed.hxml
+          else
+            echo "ERROR: Entry point not found in 'leafy' folder!"
+            ls leafy
+            exit 1
+          fi
+
+          echo "--- FINAL HXML ---"
+          cat fixed.hxml
+          
+          # 6. Run Haxe
+          haxe fixed.hxml
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
