@@ -105,21 +105,6 @@ jobs:
 
           # 1. Generate the base HXML
           ./hxcompileu_bin --compile || true
-
-          # 2. Create the Fixed HXML with corrected "Parent" paths
-          # We point to the 'git' folder so Haxe can see the packages inside them
-          echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" > fixed.hxml
-          echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> fixed.hxml
-          echo "-cp /github/home/haxelib/reflaxe/git/src" >> fixed.hxml
-          
-          # For these, we remove the /sdl2, /vorbis, etc. from the end
-          echo "-cp /github/home/haxelib/hxsdl2/git" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxvorbis/git" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_jansson/git" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_libmappedmemory/git" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_wut/git" >> fixed.hxml
-          echo "-cp /github/home/haxelib/hxu_sdl_fontcache/git" >> fixed.hxml
-          echo "-cp /github/home/haxelib/slushiutilsu/git" >> fixed.hxml
           
           # Leafy Engine
           echo "-cp /github/home/haxelib/leafyengine/git" >> fixed.hxml
