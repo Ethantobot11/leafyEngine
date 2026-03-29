@@ -100,22 +100,23 @@ jobs:
 
       - name: Build Leafy Engine Project
         run: |
-          # 1. Setup paths
           export HAXELIB_PATH=/github/home/haxelib
           haxelib setup $HAXELIB_PATH
 
-          # 2. Run the tool once just to generate 'temphxml.hxml'
-          # We expect this to fail with the error you've been seeing
+          # 1. Generate the HXML
           ./hxcompileu_bin --compile || true
 
-          # 3. MANUALLY FORCE THE PATHS
-          # Instead of relying on '-lib', we tell Haxe exactly where the source code is.
-          # We use the absolute paths to the git clones.
+          # 2. MANUALLY ADD THE 'std' PATH
+          # This is the "missing link" where cxx.Compiler lives
+          echo "-cp $HAXELIB_PATH/reflaxe,cpp/git/std" >> temphxml.hxml
+          
+          # Add the actual source too
+          echo "-cp $HAXELIB_PATH/reflaxe,cpp/git/src" >> temphxml.hxml
+          
+          # Add the core Reflaxe (the macro engine)
           echo "-cp $HAXELIB_PATH/reflaxe/git" >> temphxml.hxml
-          echo "-cp $HAXELIB_PATH/reflaxe.cpp/git/src" >> temphxml.hxml
-          echo "-cp $HAXELIB_PATH/leafyengine/git" >> temphxml.hxml
 
-          # 4. Run the Haxe compiler directly on the HXML
+          # 3. Run the compiler
           haxe temphxml.hxml
 
       - name: Upload Build
