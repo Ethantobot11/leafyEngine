@@ -103,27 +103,28 @@ jobs:
           export HAXELIB_PATH=/github/home/haxelib
           haxelib setup $HAXELIB_PATH
 
-          # 1. Run the tool to generate the 'temphxml.hxml'
-          # We use '|| true' so the workflow doesn't stop when the tool fails
+          # 1. Generate the base HXML
           ./hxcompileu_bin --compile || true
 
-          # 2. Inject the missing 'std' and 'src' paths into the HXML
-          # These must match the comma-folders shown in your logs
-          echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" >> temphxml.hxml
-          echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> temphxml.hxml
-          echo "-cp /github/home/haxelib/reflaxe/git" >> temphxml.hxml
-          echo "-cp /github/home/haxelib/leafyengine/git" >> temphxml.hxml
+          # 2. Refine the HXML
+          # We remove the '-main src.Main' if it's causing issues and replace it
+          # We also ensure the Reflaxe std path is at the VERY TOP
+          echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" > temp_fixed.hxml
+          cat temphxml.hxml >> temp_fixed.hxml
           
-          # 3. Ensure your project's source is included (fixes Type not found: src.Main)
-          echo "-cp src" >> temphxml.hxml
+          # Inject the other paths
+          echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> temp_fixed.hxml
+          echo "-cp /github/home/haxelib/reflaxe/git" >> temp_fixed.hxml
+          echo "-cp /github/home/haxelib/leafyengine/git" >> temp_fixed.hxml
 
-          # 4. Print the HXML to the log so we can see what's happening
-          echo "--- FINAL HXML CONTENT ---"
-          cat temphxml.hxml
-          echo "--------------------------"
+          # 3. Final verification: Check if Main.hx is in a package
+          # This command checks if 'package src;' exists. If not, it fixes the main call.
+          if ! grep -q "package src;" src/Main.hx; then
+            sed -i 's/-main src.Main/-main Main/g' temp_fixed.hxml
+          fi
 
-          # 5. Manually run the Haxe compiler using our fixed HXML
-          haxe temphxml.hxml
+          # 4. Run the compiler
+          haxe temp_fixed.hxml
 
       - name: Upload Build
         uses: actions/upload-artifact@v4
