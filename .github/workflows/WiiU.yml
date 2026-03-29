@@ -104,18 +104,25 @@ jobs:
           haxelib setup $HAXELIB_PATH
 
           # 1. Run the tool to generate the 'temphxml.hxml'
-          # We ignore the error with '|| true' because we know it will fail here
+          # We use '|| true' so the workflow doesn't stop when the tool fails
           ./hxcompileu_bin --compile || true
 
-          # 2. Fix the HXML file by injecting the missing paths
-          # We use the comma-path shown in your error logs
+          # 2. Inject the missing 'std' and 'src' paths into the HXML
+          # These must match the comma-folders shown in your logs
           echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" >> temphxml.hxml
           echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> temphxml.hxml
           echo "-cp /github/home/haxelib/reflaxe/git" >> temphxml.hxml
           echo "-cp /github/home/haxelib/leafyengine/git" >> temphxml.hxml
+          
+          # 3. Ensure your project's source is included (fixes Type not found: src.Main)
+          echo "-cp src" >> temphxml.hxml
 
-          # 3. Manually run the Haxe compiler using the fixed HXML
-          # This bypasses the broken internal call in the tool
+          # 4. Print the HXML to the log so we can see what's happening
+          echo "--- FINAL HXML CONTENT ---"
+          cat temphxml.hxml
+          echo "--------------------------"
+
+          # 5. Manually run the Haxe compiler using our fixed HXML
           haxe temphxml.hxml
 
       - name: Upload Build
