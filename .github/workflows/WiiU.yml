@@ -74,7 +74,7 @@ jobs:
           # 1. Base Reflaxe (Mandatory for 'cxx' package)
           haxelib git reflaxe https://github.com/SomeRanDev/reflaxe --quiet
           # 2. Reflaxe C++ Output
-          haxelib git reflaxe.cpp https://github.com/SomeRanDev/reflaxe.CPP --quiet
+          haxelib git reflaxe.cpp https://github.com/SomeRanDev/reflaxe.cpp --quiet
           # 3. Leafy Engine (Lowercase to fix the [WARNING])
           haxelib git leafyengine https://github.com/Slushi-Github/leafyEngine --quiet
           haxelib git hxu_wut https://github.com/Slushi-Github/hxWUT --quiet
@@ -100,23 +100,22 @@ jobs:
 
       - name: Build Leafy Engine Project
         run: |
-          # 1. Ensure Haxelib is initialized for this shell
-          # 1. Ensure we are using the correct library path
+          # 1. Setup paths
           export HAXELIB_PATH=/github/home/haxelib
           haxelib setup $HAXELIB_PATH
 
-          # 2. Run the tool once just to generate the 'temphxml.hxml'
-          # We expect this to fail, so we use '|| true'
+          # 2. Run the tool once just to generate 'temphxml.hxml'
+          # We expect this to fail with the error you've been seeing
           ./hxcompileu_bin --compile || true
 
-          # 3. Manually inject the required libraries into the generated HXML
-          # This ensures the compiler definitely sees the 'cxx' package
-          echo "-lib reflaxe" >> temphxml.hxml
-          echo "-lib reflaxe.cpp" >> temphxml.hxml
-          echo "-lib leafyengine" >> temphxml.hxml
+          # 3. MANUALLY FORCE THE PATHS
+          # Instead of relying on '-lib', we tell Haxe exactly where the source code is.
+          # We use the absolute paths to the git clones.
+          echo "-cp $HAXELIB_PATH/reflaxe/git" >> temphxml.hxml
+          echo "-cp $HAXELIB_PATH/reflaxe.cpp/git/src" >> temphxml.hxml
+          echo "-cp $HAXELIB_PATH/leafyengine/git" >> temphxml.hxml
 
-          # 4. Now run the Haxe compiler directly using that fixed HXML
-          # This bypasses the tool's internal call and uses our fixed version
+          # 4. Run the Haxe compiler directly on the HXML
           haxe temphxml.hxml
 
       - name: Upload Build
