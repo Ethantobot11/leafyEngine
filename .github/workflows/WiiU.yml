@@ -103,20 +103,19 @@ jobs:
           export HAXELIB_PATH=/github/home/haxelib
           haxelib setup $HAXELIB_PATH
 
-          # 1. Generate the HXML
+          # 1. Run the tool to generate the 'temphxml.hxml'
+          # We ignore the error with '|| true' because we know it will fail here
           ./hxcompileu_bin --compile || true
 
-          # 2. MANUALLY ADD THE 'std' PATH
-          # This is the "missing link" where cxx.Compiler lives
-          echo "-cp $HAXELIB_PATH/reflaxe,cpp/git/std" >> temphxml.hxml
-          
-          # Add the actual source too
-          echo "-cp $HAXELIB_PATH/reflaxe,cpp/git/src" >> temphxml.hxml
-          
-          # Add the core Reflaxe (the macro engine)
-          echo "-cp $HAXELIB_PATH/reflaxe/git" >> temphxml.hxml
+          # 2. Fix the HXML file by injecting the missing paths
+          # We use the comma-path shown in your error logs
+          echo "-cp /github/home/haxelib/reflaxe,cpp/git/std" >> temphxml.hxml
+          echo "-cp /github/home/haxelib/reflaxe,cpp/git/src" >> temphxml.hxml
+          echo "-cp /github/home/haxelib/reflaxe/git" >> temphxml.hxml
+          echo "-cp /github/home/haxelib/leafyengine/git" >> temphxml.hxml
 
-          # 3. Run the compiler
+          # 3. Manually run the Haxe compiler using the fixed HXML
+          # This bypasses the broken internal call in the tool
           haxe temphxml.hxml
 
       - name: Upload Build
